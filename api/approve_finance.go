@@ -2,17 +2,11 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/NathanPr03/price-control/pkg/db"
 	"net/http"
 	"strconv"
 	"time"
 )
-
-type Customer struct {
-	ID             int     `json:"id"`
-	Email          string  `json:"email"`
-	HasLoyaltyCard bool    `json:"has_loyalty_card"`
-	TotalPurchases float64 `json:"total_purchases"`
-}
 
 type FinanceResponse struct {
 	Eligible bool `json:"eligible"`
@@ -31,8 +25,34 @@ func ApproveFinance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	doesCustExist, err := doesCustomerExist(customerID)
+	if !doesCustExist {
+		http.Error(w, "customer_id does not exist", http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(FinanceResponse{Eligible: mockFinanceApprovalSystem(customerID)})
+}
+
+func doesCustomerExist(customerID int) (bool, error) {
+	dbConnection, err := db.ConnectToDb()
+	if err != nil {
+		println("Error connecting to database: " + err.Error())
+		return false, err
+	}
+	query := "SELECT COUNT(id) FROM customer WHERE id = $1"
+	var count int
+	err = dbConnection.QueryRow(query, customerID).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func mockFinanceApprovalSystem(customerID int) bool {
