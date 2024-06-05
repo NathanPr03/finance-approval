@@ -1,0 +1,31 @@
+openapi: 3.0.1
+info:
+  title: finance-approval API
+  description: API to return financing eligibility based on customer ID
+  version: 1.0.0
+paths:
+  /finance:
+    get:
+      summary: Check financing eligibility for a customer
+      parameters:
+        - name: customer_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The ID of the customer
+      responses:
+        '200':
+          description: Financing eligibility
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eligible:
+                    type: boolean
+                    example: true
+        '400':
+          description: Invalid customer ID supplied
+        '404':
+          description: Customer not found
