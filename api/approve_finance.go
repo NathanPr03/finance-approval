@@ -13,6 +13,14 @@ type FinanceResponse struct {
 }
 
 func ApproveFinance(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	customerIDStr := r.URL.Query().Get("customer_id")
 	if customerIDStr == "" {
 		http.Error(w, "customer_id query parameter is required", http.StatusBadRequest)
